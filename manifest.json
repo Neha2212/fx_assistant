@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "FX Agent — Currency Intelligence",
+  "version": "1.0.0",
+  "description": "AI-powered currency tracker with smart recommendations & real-time alerts",
+  "permissions": [
+    "storage",
+    "notifications",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://api.frankfurter.app/*",
+    "https://newsapi.org/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "FX Agent"
+  }
+}

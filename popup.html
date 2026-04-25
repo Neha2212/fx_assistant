@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>FX Agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ─── HEADER ──────────────────────────────────────────── -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-gem">
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+          <path d="M15 2L27 9V21L15 28L3 21V9L15 2Z" stroke="#22d3ee" stroke-width="1.2" fill="rgba(34,211,238,0.05)"/>
+          <path d="M15 7L22 11V19L15 23L8 19V11L15 7Z" fill="rgba(34,211,238,0.12)"/>
+          <circle cx="15" cy="15" r="3.5" fill="#22d3ee"/>
+          <circle cx="15" cy="15" r="1.8" fill="#07091a"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name"><span class="logo-fx">FX</span><span class="logo-ag">AGENT</span></div>
+        <div class="logo-sub">Currency Intelligence</div>
+      </div>
+    </div>
+    <nav class="tnav-group">
+      <button class="tnav active" data-tab="analyze">
+        <svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 8.5l2.5-3 2 2 4.5-5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        Analyze
+      </button>
+      <button class="tnav" data-tab="alerts">
+        <svg width="11" height="11" viewBox="0 0 11 11"><path d="M5.5 1v.8M9 5.5a3.5 3.5 0 1 0-7 0V8h7V5.5zM4 8v.5a1.5 1.5 0 0 0 3 0V8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></svg>
+        Alerts
+      </button>
+      <button class="tnav" data-tab="logs">
+        <svg width="11" height="11" viewBox="0 0 11 11"><rect x="1" y="1" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M3 4h5M3 6h5M3 8h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Logs
+      </button>
+      <button class="tnav" data-tab="settings">
+        <svg width="11" height="11" viewBox="0 0 11 11"><circle cx="5.5" cy="5.5" r="1.8" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M5.5 1v.8M5.5 9.2v.8M1 5.5h.8M9.2 5.5H10M2.3 2.3l.6.6M8.1 8.1l.6.6M2.3 8.7l.6-.6M8.1 2.9l.6-.6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Config
+      </button>
+    </nav>
+  </header>
+
+  <div id="no-key-banner" class="no-key-banner hidden">
+    <span>⚠ Gemini API key not set</span>
+    <button class="banner-cta" data-tab="settings">Configure →</button>
+  </div>
+
+  <!-- ─── TAB: ANALYZE ────────────────────────────────────── -->
+  <div class="tab active" id="tab-analyze">
+
+    <!-- Rate Hero Card -->
+    <div class="rate-hero">
+      <div class="pair-selector-row">
+        <div class="cur-slot">
+          <div class="cur-label">FROM</div>
+          <select id="from-currency" class="csel"></select>
+        </div>
+        <button id="swap-btn" class="swap-btn" title="Swap">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M3.5 5.5h11M11 2.5l3.5 3-3.5 3M14.5 12.5h-11M7 9.5L3.5 12.5l3.5 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="cur-slot">
+          <div class="cur-label">TO</div>
+          <select id="to-currency" class="csel"></select>
+        </div>
+        <div class="rate-readout">
+          <div class="cur-label">LIVE</div>
+          <div id="live-rate" class="live-num">—</div>
+          <div id="rate-delta" class="rate-delta neutral">—</div>
+        </div>
+      </div>
+
+      <!-- Sparkline -->
+      <div class="spark-area">
+        <div class="spark-meta">
+          <span class="spark-lbl">7-day chart</span>
+          <span id="spark-hi-lo" class="spark-hi-lo"></span>
+        </div>
+        <svg id="sparkline" class="sparkline-svg" viewBox="0 0 360 50" preserveAspectRatio="none">
+          <text x="180" y="30" text-anchor="middle" fill="#3d5068" font-size="11" font-family="JetBrains Mono, monospace">awaiting data…</text>
+        </svg>
+        <div class="spark-axis">
+          <span id="spark-start" class="spark-date"></span>
+          <span id="spark-end" class="spark-date"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick prompts -->
+    <div class="chip-row">
+      <button class="chip" data-prompt="Should I convert now? Give me a detailed recommendation based on today's rate and the 30-day trend.">💡 Convert now?</button>
+      <button class="chip" data-prompt="Show me the 30-day trend. Is the current rate historically high or low?">📈 30d trend</button>
+      <button class="chip" data-prompt="What is the best time of week or month to convert based on recent patterns?">⏱ Best timing</button>
+      <button class="chip" data-prompt="Find any recent news that may be affecting this currency pair.">📰 News</button>
+      <button class="chip" data-prompt="Compare the base currency against USD, EUR, GBP, and JPY at the same time.">🔀 Compare</button>
+    </div>
+
+    <!-- Input bar -->
+    <div class="input-bar">
+      <textarea id="query-input" class="qinput" placeholder="Ask anything — e.g. &quot;I want to send £2000 to India, should I convert now or wait?&quot;" rows="2"></textarea>
+      <button id="ask-btn" class="ask-btn">
+        <span id="ask-label">Ask</span>
+        <svg id="ask-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1.5 7h11M8.5 3l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg id="ask-spin" class="spin hidden" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.6" stroke-dasharray="22 12" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <!-- Chain toolbar (shown when conversation is active) -->
+    <div class="chain-toolbar hidden" id="chain-toolbar">
+      <div class="chain-ctx">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+          <path d="M1 5.5C1 3 3 1 5.5 1S10 3 10 5.5 8 10 5.5 10H1.5L1 8" stroke="#22d3ee" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="turn-count-label">Conversation active</span>
+      </div>
+      <button id="new-chat-btn" class="new-chat-btn">
+        <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+          <path d="M9 5.5A3.5 3.5 0 1 1 5.5 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          <path d="M7 2h2.5V4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        New chat
+      </button>
+    </div>
+
+    <!-- Reasoning Chain -->
+    <div id="chain" class="chain-container">
+      <div class="chain-empty" id="chain-empty">
+        <div class="ce-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="22" stroke="#151e35" stroke-width="1.5"/>
+            <circle cx="24" cy="24" r="14" stroke="#1a2640" stroke-width="1" stroke-dasharray="4 3"/>
+            <path d="M16 24c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="24" cy="24" r="4" fill="rgba(34,211,238,0.15)"/>
+            <circle cx="24" cy="24" r="2" fill="#22d3ee"/>
+          </svg>
+        </div>
+        <div class="ce-title">Agent Ready</div>
+        <div class="ce-sub">Select a currency pair and ask a question.<br>Every reasoning step will appear here in real-time.</div>
+        <div class="ce-examples">
+          <div class="ce-example">"Should I send £500 to India this week?"</div>
+          <div class="ce-example">"Alert me when USD/JPY drops below 148"</div>
+          <div class="ce-example">"What's driving GBP/EUR changes lately?"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: ALERTS ──────────────────────────────────────── -->
+  <div class="tab" id="tab-alerts">
+
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v1M7 12v1M1 7h1M12 7h1M2.9 2.9l.7.7M10.4 10.4l.7.7M2.9 11.1l.7-.7M10.4 3.6l.7-.7" stroke="#f59e0b" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="7" r="3" stroke="#f59e0b" stroke-width="1.4"/></svg>
+        Create Alert
+      </div>
+      <div class="alert-form-grid">
+        <div class="form-col">
+          <label class="flbl">Currency Pair</label>
+          <div class="pair-row-sm">
+            <select id="alert-from" class="csel sm"></select>
+            <span class="pair-slash">/</span>
+            <select id="alert-to" class="csel sm"></select>
+          </div>
+        </div>
+        <div class="form-col">
+          <label class="flbl">Condition</label>
+          <select id="alert-dir" class="csel sm" style="width:100%">
+            <option value="above">↑ Rises above</option>
+            <option value="below">↓ Drops below</option>
+          </select>
+        </div>
+        <div class="form-col">
+          <label class="flbl">Target Rate</label>
+          <input type="number" id="alert-target" class="num-inp" placeholder="0.0000" step="0.0001" min="0"/>
+        </div>
+      </div>
+      <button id="set-alert-btn" class="amber-btn">
+        <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v5M3.5 3.5l2.5 2.5 2.5-2.5M1.5 9.5h9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Set Alert
+      </button>
+      <div id="alert-msg" class="msg-box hidden"></div>
+    </div>
+
+    <div class="section-row">
+      <span class="section-lbl">Active Alerts</span>
+      <span id="alert-count" class="badge-count">0</span>
+    </div>
+    <div id="alerts-list" class="scroll-list">
+      <div class="empty-state">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#1e2d4a" stroke-width="1.5"/><path d="M14 8v6l4 3" stroke="#1e2d4a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        No alerts yet
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: LOGS ────────────────────────────────────────── -->
+  <div class="tab" id="tab-logs">
+
+    <div class="logs-bar">
+      <div class="logs-bar-left">
+        <span class="section-lbl">LLM Session Logs</span>
+        <span id="log-count" class="badge-count">0</span>
+      </div>
+      <div class="logs-bar-right">
+        <button id="export-btn" class="icon-btn cyan">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 1v7M3 5l3 3 3-3M1 9.5h10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Export .json
+        </button>
+        <button id="copy-all-btn" class="icon-btn teal">
+          <svg width="12" height="12" viewBox="0 0 12 12"><rect x="4" y="4" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.3" fill="none"/><path d="M4 8H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          Copy All
+        </button>
+        <button id="clear-logs-btn" class="icon-btn red">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 3h8M5 3V2h2v1M4 3l.5 7h3L8 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <div class="logs-notice">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="#22d3ee" stroke-width="1.2"/><path d="M6.5 6v3.5M6.5 3.5v1" stroke="#22d3ee" stroke-width="1.4" stroke-linecap="round"/></svg>
+      Full Gemini API messages logged here. Use <strong>Export JSON</strong> or <strong>Copy All</strong> to paste into your assignment submission.
+    </div>
+
+    <div id="logs-list" class="scroll-list logs-scroll">
+      <div class="empty-state">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="4" width="20" height="20" rx="3" stroke="#1e2d4a" stroke-width="1.5"/><path d="M8 10h12M8 14h12M8 18h8" stroke="#1e2d4a" stroke-width="1.5" stroke-linecap="round"/></svg>
+        No sessions yet — run the agent first
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB: SETTINGS ───────────────────────────────────── -->
+  <div class="tab" id="tab-settings">
+    <div class="settings-body">
+
+      <div class="settings-group">
+        <div class="settings-group-title">API Keys</div>
+
+        <div class="srow">
+          <label class="slbl">Gemini API Key <span class="badge req">Required</span></label>
+          <div class="key-row">
+            <input type="password" id="gemini-key" class="key-inp" placeholder="AIza..." autocomplete="off"/>
+            <button class="eye-btn" data-target="gemini-key">👁</button>
+          </div>
+          <div class="shint">Get free at <a href="https://aistudio.google.com" target="_blank">aistudio.google.com</a> → Get API Key</div>
+        </div>
+
+        <div class="srow">
+          <label class="slbl">NewsAPI Key <span class="badge opt">Optional</span></label>
+          <div class="key-row">
+            <input type="password" id="news-key" class="key-inp" placeholder="your key..." autocomplete="off"/>
+            <button class="eye-btn" data-target="news-key">👁</button>
+          </div>
+          <div class="shint">Enables news analysis. Free at <a href="https://newsapi.org" target="_blank">newsapi.org</a></div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">Model Selection</div>
+        <div class="srow">
+          <label class="slbl" style="justify-content:space-between;display:flex;align-items:center">
+            Active Model
+            <button id="fetch-models-btn" class="fetch-btn">
+              <svg id="fetch-icon" width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M9.5 5.5A4 4 0 1 1 5.5 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M7.5 1h2v2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg id="fetch-spin" class="spin hidden" width="11" height="11" viewBox="0 0 11 11"><circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.4" stroke-dasharray="14 10" stroke-linecap="round"/></svg>
+              <span id="fetch-label">Fetch latest models</span>
+            </button>
+          </label>
+          <select id="gemini-model" class="model-sel">
+            <option value="gemini-2.5-flash-preview-04-17">gemini-2.5-flash-preview-04-17 ✦ recommended</option>
+            <option value="gemini-2.5-pro-preview-03-25">gemini-2.5-pro-preview-03-25</option>
+            <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+          </select>
+          <div id="model-status" class="shint hidden"></div>
+        </div>
+      </div>
+
+      <button id="save-btn" class="save-btn">Save Settings</button>
+      <div id="save-msg" class="msg-box hidden" style="margin-top:8px;text-align:center"></div>
+
+      <div class="settings-divider"></div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">Notifications</div>
+        <div class="srow">
+          <label class="slbl">Test Chrome Notifications</label>
+          <div class="shint">Click below to verify notifications are working on your system. If nothing appears, check your OS notification settings for Chrome.</div>
+          <button id="test-notif-btn" class="test-notif-btn">
+            🔔 Send Test Notification
+          </button>
+          <div id="notif-status" class="msg-box hidden"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="popup.js"></script>
+</body>
+</html>
